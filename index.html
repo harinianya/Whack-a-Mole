@@ -1,0 +1,841 @@
+
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Whack-a-Mole 🐹</title>
+
+<style>
+
+* {
+
+    box-sizing: border-box;
+
+}
+
+body {
+
+    margin: 0;
+
+    min-height: 100vh;
+
+    font-family: 'Trebuchet MS', Arial, sans-serif;
+
+    background: linear-gradient(135deg, #d8f8df, #fff2d5);
+
+    color: #254735;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 20px;
+
+}
+
+.game {
+
+    width: 100%;
+
+    max-width: 530px;
+
+    text-align: center;
+
+    background: #fffdf5;
+
+    border: 3px solid #bce8c4;
+
+    border-radius: 28px;
+
+    padding: 25px;
+
+    box-shadow: 0 15px 40px #42684b25;
+
+}
+
+h1 {
+
+    margin: 0;
+
+    font-size: clamp(28px, 7vw, 40px);
+
+    color: #29744a;
+
+}
+
+.subtitle {
+
+    color: #718477;
+
+    margin: 10px 0 22px;
+
+}
+
+.stats {
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 9px;
+
+    margin-bottom: 20px;
+
+}
+
+.stat {
+
+    background: #e9f8e9;
+
+    border-radius: 15px;
+
+    padding: 12px 4px;
+
+}
+
+.stat span {
+
+    display: block;
+
+    font-size: 12px;
+
+    color: #67816c;
+
+    margin-bottom: 5px;
+
+}
+
+.stat strong {
+
+    font-size: 24px;
+
+}
+
+#timer {
+
+    color: #e76b45;
+
+}
+
+.board {
+
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 12px;
+
+    padding: 15px;
+
+    background: #bce7b7;
+
+    border-radius: 22px;
+
+}
+
+.hole {
+
+    position: relative;
+
+    height: clamp(82px, 22vw, 125px);
+
+    max-height: 125px;
+
+    overflow: hidden;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #75ad6a;
+
+    box-shadow: inset 0 8px 0 #56884e;
+
+    cursor: pointer;
+
+    touch-action: manipulation;
+
+    transition: transform 0.12s;
+
+}
+
+.hole:active {
+
+    transform: scale(0.94);
+
+}
+
+.mole {
+
+    position: absolute;
+
+    left: 0;
+
+    right: 0;
+
+    bottom: -110%;
+
+    height: 100%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    font-size: clamp(37px, 10vw, 62px);
+
+    transition: bottom 0.15s ease-out;
+
+    user-select: none;
+
+}
+
+.hole.up .mole {
+
+    bottom: 0;
+
+}
+
+.hole.bonk .mole {
+
+    filter: brightness(1.25);
+
+    transform: scale(0.9);
+
+}
+
+.controls {
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 20px;
+
+}
+
+button.action {
+
+    flex: 1;
+
+    padding: 14px 10px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition: transform 0.15s, filter 0.15s;
+
+}
+
+button.action:hover {
+
+    filter: brightness(1.06);
+
+    transform: translateY(-2px);
+
+}
+
+button.action:active {
+
+    transform: scale(0.96);
+
+}
+
+#startBtn {
+
+    background: #2f9458;
+
+    color: white;
+
+}
+
+#resetBtn {
+
+    background: #fce6ba;
+
+    color: #795522;
+
+}
+
+.message {
+
+    min-height: 28px;
+
+    margin-top: 18px;
+
+    font-weight: bold;
+
+    color: #428153;
+
+}
+
+.overlay {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: #173b2988;
+
+    display: none;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 20px;
+
+    z-index: 5;
+
+}
+
+.overlay.show {
+
+    display: flex;
+
+}
+
+.modal {
+
+    width: 100%;
+
+    max-width: 340px;
+
+    background: #fffdf5;
+
+    border-radius: 25px;
+
+    padding: 30px 22px;
+
+    text-align: center;
+
+    box-shadow: 0 15px 50px #0002;
+
+    animation: pop 0.25s ease-out;
+
+}
+
+@keyframes pop {
+
+    from { transform: scale(0.8); opacity: 0; }
+
+    to { transform: scale(1); opacity: 1; }
+
+}
+
+.modal .emoji {
+
+    font-size: 65px;
+
+}
+
+.modal h2 {
+
+    margin: 10px 0;
+
+    color: #29744a;
+
+}
+
+.modal p {
+
+    color: #718477;
+
+}
+
+.modal input {
+
+    width: 100%;
+
+    padding: 13px;
+
+    border: 2px solid #c8e8cb;
+
+    border-radius: 12px;
+
+    font-size: 16px;
+
+    margin: 10px 0 15px;
+
+    outline-color: #2f9458;
+
+}
+
+@media (max-width: 380px) {
+
+    .game { padding: 15px; }
+
+    .board { gap: 8px; padding: 10px; }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<main class="game">
+
+    <h1>🐹 Whack-a-Mole!</h1>
+
+    <p class="subtitle">Catch the cheeky moles before time runs out!</p>
+
+    <section class="stats">
+
+        <div class="stat">
+
+            <span>⭐ SCORE</span>
+
+            <strong id="score">0</strong>
+
+        </div>
+
+        <div class="stat">
+
+            <span>⏱️ TIME</span>
+
+            <strong id="timer">30</strong>
+
+        </div>
+
+        <div class="stat">
+
+            <span>🏆 BEST</span>
+
+            <strong id="best">0</strong>
+
+        </div>
+
+    </section>
+
+    <section class="board" id="board" aria-label="Mole game board"></section>
+
+    <div class="controls">
+
+        <button class="action" id="startBtn">▶ Start Game</button>
+
+        <button class="action" id="resetBtn">↻ Restart</button>
+
+    </div>
+
+    <p class="message" id="message">Press Start and get ready! 🎯</p>
+
+</main>
+
+<div class="overlay show" id="overlay">
+
+    <div class="modal">
+
+        <div class="emoji">🐹</div>
+
+        <h2 id="modalTitle">Ready to play?</h2>
+
+        <p id="modalText">Enter your name and catch as many moles as you can!</p>
+
+        <input id="playerName" type="text" maxlength="18"
+
+               placeholder="Enter your player name"
+
+               autocomplete="nickname">
+
+        <button class="action" id="playBtn"
+
+                style="width:100%;background:#2f9458;color:white">
+
+            Let's Play! 🚀
+
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+
+const board = document.getElementById("board");
+
+const scoreDisplay = document.getElementById("score");
+
+const timerDisplay = document.getElementById("timer");
+
+const bestDisplay = document.getElementById("best");
+
+const message = document.getElementById("message");
+
+const startBtn = document.getElementById("startBtn");
+
+const resetBtn = document.getElementById("resetBtn");
+
+const overlay = document.getElementById("overlay");
+
+const playerInput = document.getElementById("playerName");
+
+const playBtn = document.getElementById("playBtn");
+
+const modalTitle = document.getElementById("modalTitle");
+
+const modalText = document.getElementById("modalText");
+
+let score = 0;
+
+let timeLeft = 30;
+
+let best = 0;
+
+let playerName = "";
+
+let activeHole = -1;
+
+let playing = false;
+
+let countdown = null;
+
+let moleTimeout = null;
+
+let nextMoleTimeout = null;
+
+let roundId = 0;
+
+const holes = [];
+
+const emojis = ["🐹", "🐭", "🐹", "🐻"];
+
+// Create the nine holes.
+
+for (let i = 0; i < 9; i++) {
+
+    const hole = document.createElement("button");
+
+    hole.className = "hole";
+
+    hole.setAttribute("aria-label", "Empty mole hole");
+
+    const mole = document.createElement("span");
+
+    mole.className = "mole";
+
+    mole.textContent = "🐹";
+
+    hole.appendChild(mole);
+
+    board.appendChild(hole);
+
+    holes.push(hole);
+
+    hole.addEventListener("click", () => whack(i));
+
+}
+
+function clearTimers() {
+
+    clearInterval(countdown);
+
+    clearTimeout(moleTimeout);
+
+    clearTimeout(nextMoleTimeout);
+
+}
+
+function hideMoles() {
+
+    holes.forEach(hole => {
+
+        hole.classList.remove("up", "bonk");
+
+    });
+
+    activeHole = -1;
+
+}
+
+function startGame() {
+
+    clearTimers();
+
+    hideMoles();
+
+    roundId++;
+
+    const thisRound = roundId;
+
+    score = 0;
+
+    timeLeft = 30;
+
+    playing = true;
+
+    scoreDisplay.textContent = score;
+
+    timerDisplay.textContent = timeLeft;
+
+    message.textContent = `Good luck, ${playerName}! Catch them! 🎯`;
+
+    startBtn.textContent = "🎮 Playing...";
+
+    overlay.classList.remove("show");
+
+    countdown = setInterval(() => {
+
+        if (!playing || thisRound !== roundId) return;
+
+        timeLeft--;
+
+        timerDisplay.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+
+            endGame();
+
+        }
+
+    }, 1000);
+
+    showRandomMole(thisRound);
+
+}
+
+function showRandomMole(thisRound) {
+
+    if (!playing || thisRound !== roundId) return;
+
+    hideMoles();
+
+    let index = Math.floor(Math.random() * holes.length);
+
+    // Avoid showing the mole in the same hole twice in a row.
+
+    if (holes.length > 1 && index === activeHole) {
+
+        index = (index + 1 + Math.floor(Math.random() * 8)) % 9;
+
+    }
+
+    activeHole = index;
+
+    const hole = holes[index];
+
+    hole.querySelector(".mole").textContent =
+
+        emojis[Math.floor(Math.random() * emojis.length)];
+
+    hole.classList.add("up");
+
+    hole.setAttribute("aria-label", "Whack the mole!");
+
+    // Moles become faster as your score increases.
+
+    const visibleTime = Math.max(420, 950 - score * 12);
+
+    moleTimeout = setTimeout(() => {
+
+        if (!playing || thisRound !== roundId) return;
+
+        hole.classList.remove("up");
+
+        hole.setAttribute("aria-label", "Empty mole hole");
+
+        activeHole = -1;
+
+        nextMoleTimeout = setTimeout(
+
+            () => showRandomMole(thisRound),
+
+            180
+
+        );
+
+    }, visibleTime);
+
+}
+
+function whack(index) {
+
+    if (!playing || index !== activeHole) return;
+
+    const hole = holes[index];
+
+    clearTimeout(moleTimeout);
+
+    clearTimeout(nextMoleTimeout);
+
+    hole.classList.remove("up");
+
+    hole.classList.add("bonk");
+
+    hole.querySelector(".mole").textContent = "💥";
+
+    score++;
+
+    scoreDisplay.textContent = score;
+
+    message.textContent = score % 5 === 0
+
+        ? "Amazing! You're a mole-catching champion! 🌟"
+
+        : "BONK! Great catch! 🎉";
+
+    activeHole = -1;
+
+    nextMoleTimeout = setTimeout(() => {
+
+        hole.classList.remove("bonk");
+
+        if (playing) showRandomMole(roundId);
+
+    }, 220);
+
+}
+
+function endGame() {
+
+    playing = false;
+
+    clearTimers();
+
+    hideMoles();
+
+    startBtn.textContent = "▶ Play Again";
+
+    if (score > best) {
+
+        best = score;
+
+        bestDisplay.textContent = best;
+
+        try {
+
+            localStorage.setItem("whackMoleBest", String(best));
+
+        } catch (error) {
+
+            // Game still works if browser storage is unavailable.
+
+        }
+
+    }
+
+    message.textContent = `Game over, ${playerName}! 🎮`;
+
+    modalTitle.textContent = "Time's Up! ⏰";
+
+    modalText.textContent =
+
+        `${playerName}, you scored ${score} points! ` +
+
+        (score >= 20 ? "Incredible! 🏆" :
+
+         score >= 10 ? "Well done! 🌟" : "Keep practising! 💚");
+
+    playerInput.value = playerName;
+
+    playerInput.style.display = "none";
+
+    playBtn.textContent = "Play Again! 🚀";
+
+    overlay.classList.add("show");
+
+}
+
+function openNewGame() {
+
+    playing = false;
+
+    clearTimers();
+
+    hideMoles();
+
+    modalTitle.textContent = "Ready to play?";
+
+    modalText.textContent =
+
+        "Enter your name and catch as many moles as you can!";
+
+    playerInput.style.display = "block";
+
+    playerInput.value = playerName;
+
+    playBtn.textContent = "Let's Play! 🚀";
+
+    overlay.classList.add("show");
+
+    playerInput.focus();
+
+}
+
+playBtn.addEventListener("click", () => {
+
+    if (!playerName || playerInput.style.display !== "none") {
+
+        const enteredName = playerInput.value.trim();
+
+        if (!enteredName) {
+
+            playerInput.focus();
+
+            playerInput.placeholder = "Please enter your name first!";
+
+            return;
+
+        }
+
+        playerName = enteredName;
+
+    }
+
+    startGame();
+
+});
+
+playerInput.addEventListener("keydown", event => {
+
+    if (event.key === "Enter") playBtn.click();
+
+});
+
+startBtn.addEventListener("click", () => {
+
+    if (playing) return;
+
+    openNewGame();
+
+});
+
+resetBtn.addEventListener("click", openNewGame);
+
+// Load the saved high score when possible.
+
+try {
+
+    best = Number(localStorage.getItem("whackMoleBest")) || 0;
+
+} catch (error) {
+
+    best = 0;
+
+}
+
+bestDisplay.textContent = best;
+
+</script>
+
+</body>
+
+</html>
